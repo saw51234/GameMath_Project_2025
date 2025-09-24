@@ -389,7 +389,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 795830726}
         m_TargetAssemblyTypeName: BubbleSortTest, Assembly-CSharp
-        m_MethodName: StartBubbleSort
+        m_MethodName: StartBubbleSort1
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1456,7 +1456,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 750139494}
         m_TargetAssemblyTypeName: QuickSortTest, Assembly-CSharp
-        m_MethodName: StartQuickSort
+        m_MethodName: StartQuickSort1
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

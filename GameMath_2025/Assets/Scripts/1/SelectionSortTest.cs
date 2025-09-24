@@ -21,7 +21,7 @@ public class SelectionSortTest : MonoBehaviour
         sw.Stop();
         long selectionTime = sw.ElapsedMilliseconds;
 
-        string result = "SelectionSort : " + selectionTime + " ms";
+        string result = $"SelectionSort : {selectionTime} ms";
         Debug.Log(result);
 
         if (resultText != null) resultText.text = result;

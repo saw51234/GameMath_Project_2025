@@ -8,7 +8,7 @@ using Debug = UnityEngine.Debug;
 public class BubbleSortTest : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI resultText;
-    public void StartBubbleSort()
+    public void StartBubbleSort1()
     {
         int[] data = GenerateRandomArray(10000);
 

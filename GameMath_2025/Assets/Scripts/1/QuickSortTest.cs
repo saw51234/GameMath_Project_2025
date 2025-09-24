@@ -8,7 +8,7 @@ using Debug = UnityEngine.Debug;
 public class QuickSortTest : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI resultText;
-    public void StartQuickSort()
+    public void StartQuickSort1()
     {
         int[] data = GenerateRandomArray(10000);
         Stopwatch sw = new Stopwatch();
