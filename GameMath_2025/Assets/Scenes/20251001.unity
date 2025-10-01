@@ -468,7 +468,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 2, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -486,6 +486,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 5
+  rewindDuration: 2
   defaultMaterial: {fileID: 2100000, guid: 68f6ca47ff3afee4dbf60f4fcde19f10, type: 2}
   rewindMaterial: {fileID: 2100000, guid: 386f07b31a1817f4193da6d3bf1bef5d, type: 2}
 --- !u!1660057539 &9223372036854775807
