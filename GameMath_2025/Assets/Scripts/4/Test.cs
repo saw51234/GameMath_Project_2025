@@ -41,11 +41,6 @@ public class Test : MonoBehaviour
 
     void HandleTurn()
     {
-        if (actionQueue.Count == 0)
-        {
-            return;
-        }
-
         ActionTicket firstTicket = actionQueue.Dequeue();
         float currentTime = firstTicket.ActionTime;
 
@@ -69,9 +64,7 @@ public class Test : MonoBehaviour
 
         if (readyUnits.Count > 1)
         {
-            readyUnits.Sort((ticketA, ticketB) =>
-                unitSpeeds[ticketB.UnitName].CompareTo(unitSpeeds[ticketA.UnitName])
-            );
+            readyUnits.Sort((ticketA, ticketB) => unitSpeeds[ticketB.UnitName].CompareTo(unitSpeeds[ticketA.UnitName]));
         }
 
         foreach (ActionTicket ticket in readyUnits)
