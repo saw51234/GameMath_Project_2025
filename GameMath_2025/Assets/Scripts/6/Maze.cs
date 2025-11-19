@@ -4,168 +4,176 @@ using UnityEngine;
 
 public class Maze : MonoBehaviour
 {
-    public int width = 21;
-    public int height = 21;
-    [Range(0, 1)]
-    public float wallProbability = 0.65f;
-
-    public GameObject wall;
-    public GameObject floor;
-    public GameObject path;
+    public int w = 21, h = 21;
+    [Range(0, 1)] public float wallProb = 0.35f;
+    public GameObject wallPrf, floorPrf, pathPrf, charPrf, farPrf;
 
     int[,] map;
-    bool[,] visited;
+    List<Vector2Int> pathList;
+    Vector2Int start = new Vector2Int(1, 1);
     Vector2Int goal;
-    readonly Vector2Int[] dirs = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
-
-    List<Vector2Int> solvedPath = new List<Vector2Int>();
+    Vector2Int[] dirs = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
+    GameObject charInst;
 
     void Start()
     {
-        GenerateNewSolvableMaze();
+        GenMaze();
     }
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            GenerateNewSolvableMaze();
+            GenMaze();
         }
-
         if (Input.GetKeyDown(KeyCode.R))
         {
-            ShowPath();
+            DrawPath();
+        }
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            StartCoroutine(Move());
+        }
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            DrawFurthest();
         }
     }
 
-    void GenerateNewSolvableMaze()
+    void GenMaze()
     {
-        ClearAllVisuals();
+        StopAllCoroutines();
+        ClearObj();
+        goal = new Vector2Int(w - 2, h - 2);
 
         while (true)
         {
-            CreateMapData();
-
-            visited = new bool[width, height];
-
-            if (CheckSolvable(1, 1))
+            map = new int[w, h];
+            for (int x = 0; x < w; x++)
             {
-                break;
+                for (int y = 0; y < h; y++)
+                {
+                    map[x, y] = (x == 0 || x == w - 1 || y == 0 || y == h - 1) ? 1 :
+                    ((x == 1 && y == 1) || (x == goal.x && y == goal.y)) ? 0 :
+                    (Random.value < wallProb ? 1 : 0);
+                } 
+            }
+
+            pathList = GetBFS();
+            if (pathList != null) break;
+        }
+
+        for (int x = 0; x < w; x++)
+        {
+            for (int y = 0; y < h; y++)
+            {
+                Instantiate(map[x, y] == 1 ? wallPrf : floorPrf, new Vector3(x, 0, y), Quaternion.identity, transform).name = "Map";
             }
         }
 
-        DrawMaze();
-
-        visited = new bool[width, height];
-        solvedPath.Clear();
-        FindPath(1, 1);
+        charInst = Instantiate(charPrf, new Vector3(1, 0.5f, 1), Quaternion.identity, transform);
     }
 
-    void CreateMapData()
+    List<Vector2Int> GetBFS()
     {
-        map = new int[width, height];
-        goal = new Vector2Int(width - 2, height - 2);
 
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < height; y++)
-            {
-                if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
-                    map[x, y] = 1;
-                else if ((x == 1 && y == 1) || (x == goal.x && y == goal.y))
-                    map[x, y] = 0;
-                else
-                    map[x, y] = Random.value < wallProbability ? 1 : 0;
-            }
-    }
+        bool[,] visited = new bool[w, h];
+        Vector2Int?[,] parent = new Vector2Int?[w, h];
+        Queue<Vector2Int> q = new Queue<Vector2Int>();
+        q.Enqueue(start);
+        visited[start.x, start.y] = true;
 
-    void DrawMaze()
-    {
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < height; y++)
+        while (q.Count > 0)
+        {
+            Vector2Int cur = q.Dequeue();
+            if (cur == goal)
             {
-                GameObject prefab = (map[x, y] == 1) ? wall : floor;
-                if (prefab != null)
+                List<Vector2Int> path = new List<Vector2Int>();
+                Vector2Int? n = goal;
+
+                while (n != null)
                 {
-                    Vector3 pos = new Vector3(x, 0, y);
-                    GameObject go = Instantiate(prefab, pos, Quaternion.identity);
-                    go.name = "MazeBlock";
-                    go.transform.SetParent(this.transform);
+                    path.Add(n.Value); n = parent[n.Value.x, n.Value.y];
+                }
+
+                path.Reverse();
+                return path;
+            }
+
+            foreach (var d in dirs)
+            {
+                int nx = cur.x + d.x, ny = cur.y + d.y;
+                if (nx < 0 || ny < 0 || nx >= w || ny >= h || map[nx, ny] == 1 || visited[nx, ny]) continue;
+                visited[nx, ny] = true;
+                parent[nx, ny] = cur;
+                q.Enqueue(new Vector2Int(nx, ny));
+            }
+        }
+        return null;
+    }
+
+    void DrawPath()
+    {
+        foreach (Transform t in transform)
+        {
+            if (t.name == "Path") Destroy(t.gameObject);
+        }
+
+        if (pathList != null)
+        {
+            foreach (var p in pathList) 
+            {
+                Instantiate(pathPrf, new Vector3(p.x, 0.1f, p.y), Quaternion.identity, transform).name = "Path";
+            }
+        }
+    }
+
+    IEnumerator Move()
+    {
+        if (charInst == null || pathList == null) yield break;
+        foreach (var p in pathList)
+        {
+            charInst.transform.position = new Vector3(p.x, 0.5f, p.y);
+            yield return new WaitForSeconds(0.1f);
+        }
+    }
+
+    void ClearObj()
+    {
+        foreach (Transform t in transform) Destroy(t.gameObject);
+    }
+
+    void DrawFurthest()
+    {
+        foreach (Transform t in transform)
+        {
+            if (t.name == "Far") Destroy(t.gameObject);
+        }
+
+        int[,] dist = new int[w, h];
+        Queue<Vector2Int> q = new Queue<Vector2Int>();
+
+        q.Enqueue(start); dist[start.x, start.y] = 1;
+        int max = 1;
+
+        while (q.Count > 0)
+        {
+            var c = q.Dequeue();
+            foreach (var d in dirs)
+            {
+                int nx = c.x + d.x, ny = c.y + d.y;
+                if (nx >= 0 && ny >= 0 && nx < w && ny < h && map[nx, ny] == 0 && dist[nx, ny] == 0)
+                {
+                    dist[nx, ny] = dist[c.x, c.y] + 1;
+                    max = dist[nx, ny];
+                    q.Enqueue(new Vector2Int(nx, ny));
                 }
             }
-    }
+        }
 
-    void ShowPath()
-    {
-        ClearPathVisuals();
-
-        foreach (var p in solvedPath)
-        {
-            if (path != null)
+        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++)
             {
-                Vector3 pos = new Vector3(p.x, 0.1f, p.y);
-                GameObject go = Instantiate(path, pos, Quaternion.identity);
-                go.name = "PathBlock";
-                go.transform.SetParent(this.transform);
+                if (dist[x, y] == max) Instantiate(farPrf, new Vector3(x, 0.1f, y), Quaternion.identity, transform).name = "Far";
             }
-        }
-    }
-
-    void ClearAllVisuals()
-    {
-        foreach (Transform child in this.transform)
-        {
-            Destroy(child.gameObject);
-        }
-    }
-
-    void ClearPathVisuals()
-    {
-        foreach (Transform child in this.transform)
-        {
-            if (child.name == "PathBlock")
-            {
-                Destroy(child.gameObject);
-            }
-        }
-    }
-
-    bool CheckSolvable(int x, int y)
-    {
-        if (x < 0 || y < 0 || x >= map.GetLength(0) || y >= map.GetLength(1)) return false;
-        if (map[x, y] == 1 || visited[x, y]) return false;
-
-        visited[x, y] = true;
-
-        if (x == goal.x && y == goal.y) return true;
-
-        foreach (var d in dirs)
-            if (CheckSolvable(x + d.x, y + d.y)) return true;
-
-        return false;
-    }
-
-    bool FindPath(int x, int y)
-    {
-        if (x < 0 || y < 0 || x >= width || y >= height) return false;
-        if (map[x, y] == 1 || visited[x, y]) return false;
-
-        visited[x, y] = true;
-
-        if (x == goal.x && y == goal.y)
-        {
-            solvedPath.Add(new Vector2Int(x, y));
-            return true;
-        }
-
-        foreach (var d in dirs)
-        {
-            if (FindPath(x + d.x, y + d.y))
-            {
-                solvedPath.Add(new Vector2Int(x, y));
-                return true;
-            }
-        }
-
-        return false;
     }
 }
